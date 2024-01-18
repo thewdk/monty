@@ -16,6 +16,7 @@
 #include <stdarg.h>
 #include <sys/types.h>
 
+extern int mode;
 /**
  * struct stack_s - doubly linked list representation of a stack (or queue)
  * @n: integer
@@ -112,5 +113,6 @@ void divOpera(stack_t **stack, unsigned int line_fig);
 void mulOpera(stack_t **stack, unsigned int line_fig);
 void modOpera(stack_t **stack, unsigned int line_fig);
 
+   
 #endif /* MONTY_H */
 
