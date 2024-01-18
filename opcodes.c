@@ -1,169 +1,138 @@
 #include "monty.h"
 
-/**
-  * free_stack - function to free the stack
-  * @stack: Stack to be freed
-  */
-
-void free_stack(stack_t **stack)
-{
-	stack_t *curr;
-
-	while (*stack)
-	{
-		curr = *stack;
-		*stack = (*stack)->next;
-		free(curr);
-	}
-}
 
 /**
-  * pushIt - Function to add items to the top of stack
-  * @stack: Stack to be added
-  * @line_fig: Line number in the monty file
-  * @thing: Value to be added
-  */
-
-void pushIt(stack_t **stack, unsigned int line_fig, int thing)
+ * push_wd - Pushes a value to a stack_t linked list.
+ * @stack: A pointer to the top mode node of a stack_t linked list.
+ * @lineFig: The current working line number of a Monty bytecodes file.
+ */
+void push_wd(stack_t **stack, unsigned int lineFig)
 {
-	int mode = 0;
-	stack_t *curr;
-	stack_t *new_node = malloc(sizeof(stack_t));
-
-	(void)line_fig;
-
-	if (new_node == NULL)
-	{
-		fprintf(stderr, "Error: malloc failed\n");
-		free(new_node);
-		free_stack(stack);
-		exit(EXIT_FAILURE);
-	}
-	new_node->n = thing;
-	new_node->prev = NULL;
-	if (mode == 0)
-	{
-		new_node->next = *stack;
-
-		if (*stack)
-			(*stack)->prev = new_node;
-		*stack = new_node;
-	}
-	else
-	{
-		curr = *stack;
-		if (curr)
-		{
-			while (curr->next)
-				curr = curr->next;
-			curr->next = new_node;
-			new_node->next = NULL;
-			new_node->prev = curr;
-		}
-		else
-		{
-			*stack = new_node;
-			new_node->next = NULL;
-		}
-	}
-}
-
-/**
-  * pallIt - Function to print the stack items
-  * @line_fig: Line number of the file
-  * @stack: The current stack in question
-  */
-
-void pallIt(stack_t **stack, unsigned int line_fig)
-{
-	stack_t *curr = *stack;
-
-	(void)line_fig;
-
-	if (*stack == NULL)
-		return;
-
-	while (curr)
-	{
-		printf("%d\n", curr->n);
-		curr = curr->next;
-	}
-}
-
-/**
-  * pintIt - Prints the value at the top of the stack
-  * @stack: the pointer to the stack items
-  * @line_fig: line number of the monty file
-  */
-
-void pintIt(stack_t **stack, unsigned int line_fig)
-{
-	stack_t *temp;
-
-	if (stack == NULL || *stack == NULL)
-	{
-		fprintf(stderr, "L%d: can't pint, stack empty\n", line_fig);
-		exit(EXIT_FAILURE);
-	}
-
-	temp = *stack;
-	while (temp)
-	{
-		if (temp->prev == NULL)
-			break;
-		temp = temp->prev;
-	}
-
-	printf("%d\n", temp->n);
-}
-
-/**
-  * swapIt - Function to swap two elements of the stack
-  * @stack: Stack to be swapped
-  * @line_fig: Line number of the file
-  */
-
-void swapIt(stack_t **stack, unsigned int line_fig)
-{
-	int n1, n2;
-
-	if (stack == NULL || *stack == NULL || (*stack)->next == NULL)
-	{
-		fprintf(stderr, "L%u: can't swap, stack too short\n", line_fig);
-		free_stack(stack);
-		exit(EXIT_FAILURE);
-	}
-
-	n1 = (*stack)->n;
-	n2 = (*stack)->next->n;
-
-	(*stack)->n = n2;
-	(*stack)->next->n = n1;
-}
-
-/*
-void pushIt(stack_t **stack, unsigned int line_fig)
-{
-	stack_t *new;
-
-	if (stack == NULL)
-	{
-		fprintf(stderr, "L%d: stack not found\n", line_fig);
-		exit(EXIT_FAILURE);
-	}
+	stack_t *tmp, *new;
+	int i;
 
 	new = malloc(sizeof(stack_t));
 	if (new == NULL)
 	{
-		fprintf(stderr, "Error: malloc failed\n");
-		free_stack(stack);
-		exit(EXIT_FAILURE);
+		setopTokerr(malloc_err());
+		return;
 	}
 
-	new->next = *stack;
-	new->prev = NULL;
-	new->n = arg.arg;
-	if (*stack)
-		(*stack)->prev = new;
-	*stack = new;
-}*/
+	if (op_toks[1] == NULL)
+	{
+		setopTokerr(no_int_err(lineFig));
+		return;
+	}
+
+	for (i = 0; op_toks[1][i]; i++)
+	{
+		if (op_toks[1][i] == '-' && i == 0)
+			continue;
+		if (op_toks[1][i] < '0' || op_toks[1][i] > '9')
+		{
+			setopTokerr(no_int_err(lineFig));
+			return;
+		}
+	}
+	new->n = atoi(op_toks[1]);
+
+	if (check_mode(*stack) == STACK) /* STACK mode insert at front */
+	{
+		tmp = (*stack)->next;
+		new->prev = *stack;
+		new->next = tmp;
+		if (tmp)
+			tmp->prev = new;
+		(*stack)->next = new;
+	}
+	else /* QUEUE mode insert at end */
+	{
+		tmp = *stack;
+		while (tmp->next)
+			tmp = tmp->next;
+		new->prev = tmp;
+		new->next = NULL;
+		tmp->next = new;
+	}
+}
+
+/**
+ * pall_wd - Prints the values of a stack_t linked list.
+ * @stack: A pointer to the top mode node of a stack_t linked list.
+ * @lineFig: The current working line number of a Monty bytecodes file.
+ */
+void pall_wd(stack_t **stack, unsigned int lineFig)
+{
+	stack_t *tmp = (*stack)->next;
+
+	while (tmp)
+	{
+		printf("%d\n", tmp->n);
+		tmp = tmp->next;
+	}
+	(void)lineFig;
+}
+
+/**
+ * pint_wd - Prints the top value of a stack_t linked list.
+ * @stack: A pointer to the top mode node of a stack_t linked list.
+ * @lineFig: The current working line number of a Monty bytecodes file.
+ */
+void pint_wd(stack_t **stack, unsigned int lineFig)
+{
+	if ((*stack)->next == NULL)
+	{
+		setopTokerr(pint_err(lineFig));
+		return;
+	}
+
+	printf("%d\n", (*stack)->next->n);
+}
+
+
+/**
+ * pop_wd - Removes the top value element of a stack_t linked list.
+ * @stack: A pointer to the top mode node of a stack_t linked list.
+ * @lineFig: The current working line number of a Monty bytecodes file.
+ */
+void pop_wd(stack_t **stack, unsigned int lineFig)
+{
+	stack_t *next = NULL;
+
+	if ((*stack)->next == NULL)
+	{
+		setopTokerr(pop_err(lineFig));
+		return;
+	}
+
+	next = (*stack)->next->next;
+	free((*stack)->next);
+	if (next)
+		next->prev = *stack;
+	(*stack)->next = next;
+}
+
+/**
+ * swap_wd - Swaps the top two value elements of a stack_t linked list.
+ * @stack: A pointer to the top mode node of a stack_t linked list.
+ * @lineFig: The current working line number of a Monty bytecodes file.
+ */
+void swap_wd(stack_t **stack, unsigned int lineFig)
+{
+	stack_t *tmp;
+
+	if ((*stack)->next == NULL || (*stack)->next->next == NULL)
+	{
+		setopTokerr(short_stack_err(lineFig, "swap"));
+		return;
+	}
+
+	tmp = (*stack)->next->next;
+	(*stack)->next->next = tmp->next;
+	(*stack)->next->prev = tmp;
+	if (tmp->next)
+		tmp->next->prev = (*stack)->next;
+	tmp->next = (*stack)->next;
+	tmp->prev = *stack;
+	(*stack)->next = tmp;
+}
